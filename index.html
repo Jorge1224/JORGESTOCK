@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Consulta de Stock de Productos</title>
+  <script>
+    async function consultarStock() {
+      const sheetId = 'TU_SHEET_ID';
+      const url = `https://spreadsheets.google.com/feeds/cells/${sheetId}/1/public/full?alt=json`;
+      const response = await fetch(url);
+      const data = await response.json();
+      const entries = data.feed.entry;
+      
+      const productoBuscado = document.getElementById('producto').value.toLowerCase();
+      let output = '<p>No se encontró el producto.</p>';
+      
+      let currentRow = [];
+      entries.forEach(entry => {
+        const row = parseInt(entry.gs$cell.row);
+        const col = parseInt(entry.gs$cell.col);
+        const value = entry.gs$cell.$t;
+
+        if (!currentRow[row]) {
+          currentRow[row] = [];
+        }
+        currentRow[row][col] = value;
+      });
+
+      for (let i = 2; i < currentRow.length; i++) {
+        const nombreProducto = currentRow[i][1].toLowerCase();
+        if (nombreProducto === productoBuscado) {
+          output = `<p>Producto: ${currentRow[i][1]} - Stock: ${currentRow[i][2]}</p>`;
+          break;
+        }
+      }
+      document.getElementById('resultado').innerHTML = output;
+    }
+  </script>
+</head>
+<body>
+  <h1>Consulta de Stock de Productos</h1>
+  <label for="producto">Nombre del Producto:</label>
+  <input type="text" id="producto" name="producto">
+  <button onclick="consultarStock()">Consultar Stock</button>
+  <div id="resultado"></div>
+</body>
+</html>
